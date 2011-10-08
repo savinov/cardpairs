@@ -19,8 +19,12 @@ package com.github.savinov.cardpairs.model;
 
 import java.util.List;
 
-class CardTableTest {
-	public static void main(String[] args) {
+import org.junit.Test;
+
+public class CardTableTest {
+    
+    @Test
+	public void testRandomizeNumbers() {
 		System.out.println("Card table testing ...");
 
 		for (BoardSize size : BoardSize.values()) {
@@ -42,4 +46,5 @@ class CardTableTest {
 			}
 		}
 	}
+    
 }

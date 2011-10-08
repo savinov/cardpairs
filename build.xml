@@ -8,13 +8,17 @@
 
   <!-- set global properties for this build -->
   <property name="main-class" value="com.github.savinov.cardpairs.CardPairs" />
+  <property name="lib.dir" value="/usr/share/java" />
+  <property name="src.dir" value="src" />
   <property name="build.dir" value="build" />
   <property name="jar.dir" value="${build.dir}/jar" />
-  <property name="src.dir" value="src/main/java" />
-  <property name="classes.dir" value="${build.dir}/classes" />
-  <property name="res.dir" value="src/main/resources" />
-  <property name="test.dir" value="src/test/java" />
   <property name="doc.dir" value="apidocs" />
+  <property name="reports.dir" value="${build.dir}/reports" />
+  <property name="main.classes" value="${build.dir}/classes" />
+  <property name="test.classes" value="${build.dir}/test-classes" />
+  <property name="main.src" value="${src.dir}/main/java" />
+  <property name="test.src" value="${src.dir}/test/java" />
+  <property name="main.resources" value="${src.dir}/main/resources" />
 
   <path id="classpath" />
 
@@ -24,29 +28,41 @@
   </target>
 
   <target name="compile">
-    <mkdir dir="${classes.dir}" />
-    <javac srcdir="${src.dir}" destdir="${classes.dir}" />
-    <copy todir="${classes.dir}">
-      <fileset dir="${src.dir}" excludes="**/*.java" />
-    </copy>
-    <mkdir dir="${classes.dir}/resources" />
-    <copy todir="${classes.dir}/resources">
-      <fileset dir="${res.dir}" />
+    <mkdir dir="${main.classes}" />
+    <javac srcdir="${main.src}" destdir="${main.classes}" />
+    <mkdir dir="${main.classes}/resources" />
+    <copy todir="${main.classes}/resources">
+      <fileset dir="${main.resources}" />
     </copy>
   </target>
 
-  <target name="test" depends="compile">
-    <javac srcdir="${test.dir}" destdir="${classes.dir}">
-      <classpath>
-        <path refid="classpath" />
-        <path location="${classes.dir}" />
-      </classpath>
+  <target name="compile-test" depends="compile">
+    <mkdir dir="${test.classes}" />
+    <javac srcdir="${test.src}" destdir="${test.classes}">
+      <classpath location="${main.classes}" />
+      <classpath location="${lib.dir}/junit4.jar" />
     </javac>
+  </target>
+
+  <target name="test" depends="compile, compile-test">
+    <mkdir dir="${reports.dir}" />
+    <junit printsummary="yes" haltonfailure="yes" haltonerror="yes">
+      <classpath location="${main.classes}" />
+      <classpath location="${test.classes}" />
+      <classpath location="${lib.dir}/junit4.jar" />
+
+      <formatter type="plain" />
+
+      <batchtest todir="${reports.dir}">
+        <fileset dir="${test.classes}" includes="**/*Test*" />
+      </batchtest>
+    </junit>
   </target>
 
   <target name="jar" depends="compile">
     <mkdir dir="${jar.dir}" />
-    <jar destfile="${jar.dir}/${ant.project.name}.jar" basedir="${classes.dir}">
+    <jar destfile="${jar.dir}/${ant.project.name}.jar"
+         basedir="${main.classes}">
       <manifest>
         <attribute name="Main-Class" value="${main-class}" />
       </manifest>
@@ -64,7 +80,7 @@
 
   <target name="doc">
     <javadoc packagenames="com.github.savinov.cardpairs.*"
-             sourcepath="src/main/java"
+             sourcepath="${main.src}"
              defaultexcludes="true"
              destdir="${doc.dir}"
              author="true"
